@@ -12,16 +12,30 @@ import (
 	"gonum.org/v1/plot/vg"
 )
 
-func rng(x float64) float64 {
-	return math.Sin(7.0 * math.Pi * x)
+// Size is the size of the network
+const Size = 7
+
+// Weights are the weights of the network
+var Weights = [Size]float64{3, 5, 7, 9, 11, 13, 15}
+
+func rng(x [Size]float64) [Size]float64 {
+	var y [Size]float64
+	for key, value := range Weights {
+		y[key] = math.Sin(value * math.Pi * x[key])
+	}
+	return y
 }
 
 func main() {
-	x := 7.0
+	x := Weights
 	random := make(plotter.Values, 0, 1024)
 	for i := 0; i < 1024*1024; i++ {
 		x = rng(x)
-		random = append(random, x)
+		sum := 0.0
+		for _, value := range x {
+			sum += value
+		}
+		random = append(random, sum)
 	}
 
 	p := plot.New()
