@@ -21,23 +21,26 @@ import (
 const Size = 7
 
 // Weights are the weights of the network
-var Weights = [Size]float64{3, 5, 7, 9, 11, 13, 15}
+var Weights = RNG([]float64{3, 5, 7, 9, 11, 13, 15})
 
-func rng(x [Size]float64) [Size]float64 {
-	var y [Size]float64
+// RNG is an RNG network
+type RNG []float64
+
+// RNG setps the network
+func (r RNG) RNG(state []float64) {
 	for key, value := range Weights {
-		y[key] = math.Sin(value * math.Pi * x[key])
+		state[key] = math.Sin(value * math.Pi * state[key])
 	}
-	return y
 }
 
 func main() {
-	x := Weights
+	s := make([]float64, len(Weights))
+	copy(s, Weights)
 	random := make(plotter.Values, 0, 1024)
 	for i := 0; i < 1024*1024; i++ {
-		x = rng(x)
+		Weights.RNG(s)
 		sum := 0.0
-		for _, value := range x {
+		for _, value := range s {
 			sum += value
 		}
 		random = append(random, sum)
@@ -143,6 +146,33 @@ func main() {
 	p.Add(scatter)
 
 	err = p.Save(8*vg.Inch, 8*vg.Inch, "cost.png")
+	if err != nil {
+		panic(err)
+	}
+
+	for i := range weights {
+		Weights[i] = weights[i].X
+	}
+	s = make([]float64, len(Weights))
+	copy(s, Weights)
+	random = make(plotter.Values, 0, 1024)
+	for i := 0; i < 1024*1024; i++ {
+		Weights.RNG(s)
+		sum := 0.0
+		for _, value := range s {
+			sum += value
+		}
+		random = append(random, sum)
+	}
+
+	p = plot.New()
+	p.Title.Text = "random numbers"
+	histogram, err = plotter.NewHist(random, 256)
+	if err != nil {
+		panic(err)
+	}
+	p.Add(histogram)
+	err = p.Save(8*vg.Inch, 8*vg.Inch, "histogram_learned.png")
 	if err != nil {
 		panic(err)
 	}
