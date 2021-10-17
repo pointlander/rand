@@ -5,6 +5,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"math"
 	"math/rand"
@@ -20,8 +21,14 @@ import (
 // Size is the size of the network
 const Size = 7
 
-// Weights are the weights of the network
-var Weights = RNG([]float64{3, 5, 7, 9, 11, 13, 15})
+var (
+	// Weights are the weights of the network
+	Weights = RNG([]float64{3, 5, 7, 9, 11, 13, 15})
+	// FlagGaussian generates a gaussian distribution
+	FlagGaussian = flag.Bool("gaussian", false, "generate a gaussian distribution")
+	// FlagLearn learn a distribution
+	FlagLearn = flag.Bool("learn", false, "learn a distributionß")
+)
 
 // RNG is an RNG network
 type RNG []float64
@@ -33,7 +40,8 @@ func (r RNG) RNG(state []float64) {
 	}
 }
 
-func main() {
+// Gaussian generates a gaussian distribution
+func Gaussian() {
 	s := make([]float64, len(Weights))
 	copy(s, Weights)
 	random := make(plotter.Values, 0, 1024)
@@ -57,7 +65,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
 
+// Learn learns a distribution
+func Learn() {
 	var weights = [Size]sf64.V{}
 	for i := range weights {
 		weights[i].X = 7 * rand.ExpFloat64()
@@ -131,7 +142,7 @@ func main() {
 		}
 	}
 
-	p = plot.New()
+	p := plot.New()
 
 	p.Title.Text = "epochs vs cost"
 	p.X.Label.Text = "epochs"
@@ -153,9 +164,9 @@ func main() {
 	for i := range weights {
 		Weights[i] = weights[i].X
 	}
-	s = make([]float64, len(Weights))
+	s := make([]float64, len(Weights))
 	copy(s, Weights)
-	random = make(plotter.Values, 0, 1024)
+	random := make(plotter.Values, 0, 1024)
 	for i := 0; i < 1024*1024; i++ {
 		Weights.RNG(s)
 		sum := 0.0
@@ -167,7 +178,7 @@ func main() {
 
 	p = plot.New()
 	p.Title.Text = "random numbers"
-	histogram, err = plotter.NewHist(random, 256)
+	histogram, err := plotter.NewHist(random, 256)
 	if err != nil {
 		panic(err)
 	}
@@ -175,5 +186,17 @@ func main() {
 	err = p.Save(8*vg.Inch, 8*vg.Inch, "histogram_learned.png")
 	if err != nil {
 		panic(err)
+	}
+}
+
+func main() {
+	flag.Parse()
+
+	if *FlagGaussian {
+		Gaussian()
+	} else if *FlagLearn {
+		Learn()
+	} else {
+		flag.PrintDefaults()
 	}
 }
